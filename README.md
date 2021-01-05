@@ -4,7 +4,7 @@ Project for SJTU-AU332.
 
 Implementing transforming a real picture containing natural scenery into Chinese painting style using CycleGAN.
 
-![](C:\Users\shi-rui\GitHub\Chinese-Painting-Generator\overview.png)
+![](./overview.png)
 
 ## Code Structure
 
