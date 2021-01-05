@@ -1,14 +1,6 @@
-"""
-Neural Transfer Using PyTorch
-
-The algorithm takes three images,
-an input image, a content-image, and a style-image, and changes the input 
-to resemble the content of the content-image and the artistic style of the style-image.
-
-"""
-
-
 import copy
+import argparse
+import os
 from PIL import Image
 import matplotlib.pyplot as plt
 import torch
@@ -20,6 +12,7 @@ import torchvision.models as models
 
 from LossFunction import ContentLoss, StyleLoss
 
+plt.switch_backend('agg')
 
 def image_loader(image_name, transform, device):
     image = Image.open(image_name)
@@ -28,18 +21,13 @@ def image_loader(image_name, transform, device):
     return image.to(device, torch.float)
 
 
-# create a module to normalize input image so we can easily put it in a nn.Sequential
 class Normalization(nn.Module):
     def __init__(self, mean, std):
         super(Normalization, self).__init__()
-        # .view the mean and std to make them [C x 1 x 1] so that they can
-        # directly work with image Tensor of shape [B x C x H x W].
-        # B is batch size. C is number of channels. H is height and W is width.
         self.mean = torch.tensor(mean).view(-1, 1, 1)
         self.std = torch.tensor(std).view(-1, 1, 1)
 
     def forward(self, img):
-        # normalize img
         return (img - self.mean) / self.std
 
 
@@ -107,12 +95,15 @@ def get_input_optimizer(input_img):
     return optimizer
 
 
-def run_style_transfer(cnn, content_layers_default, style_layers_default, content_img, style_img, input_img, device, 
+def run(cnn, content_layers_default, style_layers_default, content_img, style_img, input_img, device, 
                        num_steps=300, style_weight=10000, content_weight=1):
     """
     the function to perform neural transfer
     
     """
+    style_loss_list = []
+    content_loss_list = []
+    
     cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406]).to(device)
     cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225]).to(device)
 
@@ -143,8 +134,11 @@ def run_style_transfer(cnn, content_layers_default, style_layers_default, conten
             loss.backward()
 
             epoch[0] += 1
-            if epoch[0] % 50 == 0:
-                print("epoch {}:  Style Loss : {:4f} Content Loss: {:4f}".format(epoch[0], style_score.item(), content_score.item()))
+            if epoch[0] % 10 == 0:
+                style_loss_list.append(style_score.item())
+                content_loss_list.append(content_score.item())
+                if epoch[0] % 50 == 0:
+                    print("epoch {}:  Style Loss : {:4f} Content Loss: {:4f}".format(epoch[0], style_score.item(), content_score.item()))
 
             return style_score + content_score
 
@@ -152,10 +146,10 @@ def run_style_transfer(cnn, content_layers_default, style_layers_default, conten
 
     input_img.data.clamp_(0, 1)
     
-    return input_img
+    return input_img, style_loss_list, content_loss_list
 
 
-def main(style_img, content_img, outputpath='./result.png', num_steps=500, style_weight=100000, content_weight=1):
+def style_transfer(style_img, content_img, outputpath='./result.png', num_steps=500, style_weight=100000, content_weight=1, name='test', loss_dir='losses'):
     '''
     the main function of neural style transfer
 
@@ -189,15 +183,73 @@ def main(style_img, content_img, outputpath='./result.png', num_steps=500, style
 
     input_img = content_img.clone()
 
-    output = run_style_transfer(cnn, content_layers_default, style_layers_default, content_img, style_img, input_img, device, 
-                                num_steps=num_steps, style_weight=style_weight, content_weight=content_weight)
+    output, style_loss, content_loss = run(cnn, content_layers_default, style_layers_default, content_img, style_img, input_img, device, 
+                                        num_steps=num_steps, style_weight=style_weight, content_weight=content_weight)
     output = output.detach().cpu().numpy().squeeze(0).transpose([1,2,0])
     plt.imsave(outputpath, output)
+
+    plt.clf()
+    
+    x = [i*10 for i in range(len(style_loss))]
+    
+    plt.plot(x, style_loss, label='style_loss')
+    plt.plot(x, content_loss, label='content_loss')
+    
+    plt.xlabel('steps')
+    plt.ylabel('loss')
+    plt.legend()
+    plt.savefig(os.path.join(loss_dir, "loss" + name))
 
 
 if __name__ == '__main__':
 
-    style_img_path = "./data/style.jpg"
-    content_img_path = "./data/content2.jpg"
+    parser = argparse.ArgumentParser()
 
-    main(style_img_path, content_img_path, outputpath='./result/result2.png', num_steps=500, style_weight=100000, content_weight=1)
+    parser.add_argument('--style_img_path',
+                        default='./data/style/style3.jpg',
+                        help='path of style image',
+                        type=str)
+    parser.add_argument('--content_img_dir',
+                        default='./data/content',
+                        help='directory of content images',
+                        type=str)
+    parser.add_argument('--result_dir',
+                        default='./results',
+                        help='directory to save results',
+                        type=str)
+    parser.add_argument('--num_steps',
+                        default=500,
+                        help='number of steps to update',
+                        type=int)
+    parser.add_argument('--style_weight',
+                        default=100000,
+                        help='weight of style',
+                        type=int)
+    parser.add_argument('--content_weight',
+                        default=1,
+                        help='weight of content',
+                        type=int)
+
+    args = parser.parse_args()
+   
+    
+    style_img_path = args.style_img_path
+    content_img_dir = args.content_img_dir
+    result_dir = args.result_dir
+    num_steps = args.num_steps
+    style_weight = args.style_weight
+    content_weight = args.content_weight
+
+    if not os.path.isdir(result_dir):
+        os.mkdir(result_dir)
+    loss_dir = os.path.join(result_dir, 'losses')
+    if not os.path.isdir(loss_dir):
+        os.mkdir(loss_dir)
+
+
+    for img in os.listdir(content_img_dir):
+        content_img_path = os.path.join(content_img_dir, img)
+
+        outputpath = os.path.join(result_dir, 'result-' + img)
+
+        style_transfer(style_img_path, content_img_path, outputpath=outputpath, num_steps=num_steps, style_weight=style_weight, content_weight=content_weight, name=img, loss_dir=loss_dir)
