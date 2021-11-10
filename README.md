@@ -26,10 +26,14 @@ Implementing transferring a real photo containing natural scenery into Chinese p
 * [`CycleGAN`](CycleGAN/)
 
     To run training script, first, change directory to where the script locates, and put trainA and trainB into directory `dataroot`. Then use command `python train.py --dataroot dataroot` in terminal. Use command `python train.py --help` for more instructions.
-    
+
     To run testing script, first, change directory to where the script locates, put test data into directory `dataroot` and put pretrained model into directory `./checkpoints/xxx` where `xxx` is the `name` you defined in terminal. Then use command `python test.py --dataroot dataroot --name name` in terminal. Use command `python test.py --help` for more instructions.
-    
-    Our pretrained Model: download [here](https://jbox.sjtu.edu.cn/l/3Jv9F0)
+
+    Our pretrained Model: 
+
+    [Google Drive](https://drive.google.com/file/d/1lpJkAG_5ge7VwMorxjY0Lk8SmbVEq6KP/view?usp=sharing)  
+
+    [Baidu NetDisk](https://pan.baidu.com/s/13p6LyL8QVThV9IsIdvEpnw) (key: eplt)
 
 * [`NeuralStyleTransfer`](NeuralStyleTransfer/)
 
@@ -38,7 +42,7 @@ Implementing transferring a real photo containing natural scenery into Chinese p
 
 ## Requirements
 
-The code requires only common Python environments for machine learning; Basicially, it was tested with
+The code requires only common Python environments for machine learning; Basically, it was tested with
 
 * Python 3 (Anaconda 3.6.3 specifically)
 * PyTorch\==0.3.1
@@ -53,7 +57,11 @@ Higher (or lower) versions should also work (perhaps with minor modifications).
 
 ## Dataset
 
-download [here](https://jbox.sjtu.edu.cn/l/Z0i6Jb)
+download:  
+
+[Google Drive](https://drive.google.com/file/d/1Th2N-36LcpCQKlfVGSGt_4T2u-nKNANX/view?usp=sharing)  
+
+[Baidu NetDisk](https://pan.baidu.com/s/1CHAXYoMiCHcKLc1cYmNR9g) (key: 1t61)
 
 Adapted from : 
 
