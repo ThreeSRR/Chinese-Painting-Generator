@@ -1,10 +1,10 @@
 # Chinese-Painting-Generator
 
-Project for SJTU-AU332. 
+Project for SJTU-AU332 (AI3603). 
 
 Implementing transferring a real photo containing natural scenery into Chinese painting style using CycleGAN and Neural Style Transfer.
 
-![](./overview.png)
+<img src="./overview.png" width="75%">
 
 ## Code Structure
 
@@ -69,3 +69,7 @@ Adapted from :
 
 [Landscape Dataset](https://github.com/yuweiming70/Landscape-Dataset/)
 
+
+## Acknowledgements
+
+This repo borrows a lot from [junyanz/pytorch-CycleGAN-and-pix2pix](https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix) and [pytorch tutorials](https://github.com/pytorch/tutorials/blob/main/advanced_source/neural_style_tutorial.py). 
